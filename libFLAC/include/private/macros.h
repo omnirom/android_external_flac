@@ -1,6 +1,5 @@
 /* libFLAC - Free Lossless Audio Codec library
- * Copyright (C) 2002-2009  Josh Coalson
- * Copyright (C) 2011-2014  Xiph.Org Foundation
+ * Copyright (C) 2012-2014  Xiph.org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,17 +29,44 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FLAC__PRIVATE__METADATA_H
-#define FLAC__PRIVATE__METADATA_H
+#ifndef FLAC__PRIVATE__MACROS_H
+#define FLAC__PRIVATE__MACROS_H
 
-#include "FLAC/metadata.h"
+#if defined(__GNUC__) && (__GNUC__ > 4 || ( __GNUC__ == 4 && __GNUC_MINOR__ >= 3))
 
-/* WATCHOUT: all malloc()ed data in the block is free()ed; this may not
- * be a consistent state (e.g. PICTURE) or equivalent to the initial
- * state after FLAC__metadata_object_new()
- */
-void FLAC__metadata_object_delete_data(FLAC__StreamMetadata *object);
+#define flac_max(a,b) \
+    ({ __typeof__ (a) _a = (a); \
+    __typeof__ (b) _b = (b); \
+    _a > _b ? _a : _b; })
 
-void FLAC__metadata_object_cuesheet_track_delete_data(FLAC__StreamMetadata_CueSheet_Track *object);
+#define MIN_PASTE(A,B) A##B
+#define MIN_IMPL(A,B,L) ({ \
+    __typeof__(A) MIN_PASTE(__a,L) = (A); \
+    __typeof__(B) MIN_PASTE(__b,L) = (B); \
+    MIN_PASTE(__a,L) < MIN_PASTE(__b,L) ? MIN_PASTE(__a,L) : MIN_PASTE(__b,L); \
+    })
+
+#define flac_min(A,B) MIN_IMPL(A,B,__COUNTER__)
+
+/* Whatever other unix that has sys/param.h */
+#elif defined(HAVE_SYS_PARAM_H)
+#include <sys/param.h>
+#define flac_max(a,b) MAX(a,b)
+#define flac_min(a,b) MIN(a,b)
+
+/* Windows VS has them in stdlib.h.. XXX:Untested */
+#elif defined(_MSC_VER)
+#include <stdlib.h>
+#define flac_max(a,b) __max(a,b)
+#define flac_min(a,b) __min(a,b)
+#endif
+
+#ifndef MIN
+#define MIN(x,y)	((x) <= (y) ? (x) : (y))
+#endif
+
+#ifndef MAX
+#define MAX(x,y)	((x) >= (y) ? (x) : (y))
+#endif
 
 #endif
